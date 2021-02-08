@@ -8,17 +8,10 @@ output:
 
 ```{r}
 Bikes <- read.csv("~/Desktop/Final+Bike+Collision+Database.csv", sep = ",", header = TRUE, na.strings=c("", "NA"), stringsAsFactors=FALSE)
-
-head(Bikes)
-table(Bikes$Start.date)
-dim(Bikes)
 # Names of columns
 colnames(Bikes)
-table(Bikes$TYPE)
-
 library(dplyr)
 Bikes$TYPE <- recode(Bikes$TYPE, BR = "Bicycle-Related ", BVA = "Bike vs. Auto", BVB="Bike vs. Bike", BVP="Bike vs. Pedestrian",CO="Cyclist Only")
-
 Bikes <- within(Bikes, 
                    PlanningDi <- factor(PlanningDi, 
                                     levels=names(sort(table(PlanningDi))))) 
@@ -45,30 +38,16 @@ base.no.na <- ggplot(Bikes[!is.na(Bikes$WEATHER!=99) & Bikes$WEATHER !="",], aes
 g <- base.no.na + geom_bar(fill = "tan") + theme_bw()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 9)) + 
   ggtitle("Number of bike collisions in different weather condistions") 
-g
 ```
 
 ```{r}
-library(ggplot2)
 d2 <- ggplot(na.omit(Bikes[Bikes$INJURED!=99,]), aes(RoadType)) + geom_bar(aes(fill = as.factor(INJURED))) + theme_bw() + ggtitle("Number of injured cyclists based on road types") + xlab("Road Types") + labs(fill = "Injured")
-
 ggsave("d2.png", path = "~/Desktop")
 
-
-
-
-library(dplyr)
 dt <- Bikes %>% mutate(year = as.factor(format(Bikes$DATE, format = "%Y")), month = as.factor(format(Bikes$DATE, format = "%m")))
-
 exp_dt <- dt[!is.na(dt$year),] %>% group_by(year, month) %>% summarize(number = n())
-head(exp_dt)
-
-
 t2 <- ggplot(exp_dt[exp_dt$number!= 'NA',] , aes(y=number, x=year, alpha = number, fill = month, color = month)) + geom_bar(stat="identity") + ggtitle("Number of bike collisions by year") + xlab("Year") + ylab("Number of bike collisions") +theme_bw()+ theme(text = element_text(size=14))
-t2
 ggsave("t2.png", path = "~/Desktop")
-
-
 
 ##remove missing values (99) from data##
 base.no.na<-ggplot(Bikes[Bikes$INJURED!=99,], aes(x=Tavg))
@@ -80,20 +59,10 @@ base.no.na+geom_bar(aes(fill=as.factor(INJURED)), binwidth=0.5)
 str_detect(Bikes$WEATHER, "CLEAR")
 Bikes$Clear<-as.numeric(str_detect(Bikes$WEATHER, "CLEAR"))
 table(Bikes$Clear)
-
-
 library(stringr)
 Bikes$ClearNoPrecip <- ifelse(str_detect(Bikes$WEATHER, "CLEAR") & Bikes$PrecipTota == 0, 1, 0)
-
-table(Bikes$ClearNoPrecip)
-
-table(Bikes$DATE)
-
 Bikes$Weekend<-ifelse(wday(ymd(Bikes$DATE))==1 | wday(ymd(Bikes$DATE))==7, 'Weekend', 'Weekday')
 table(Bikes$Weekend)
-
-require(ggplot2)
-
 base.no.na <- ggplot(na.omit(Bikes[Bikes$INJURED!=99,]), aes(x=Tavg))
 full_graph<-base.no.na + geom_histogram(aes(fill=as.factor(INJURED)), binwidth=0.5) + scale_x_continuous("Average Temp.", limits = c(20,90), breaks = c(20,30,40,50,60,70,80,90)) + labs(fill = "INJURED")
 h <- full_graph + facet_wrap(~Weekend) + theme_bw()
